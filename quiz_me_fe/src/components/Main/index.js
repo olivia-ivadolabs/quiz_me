@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import {
   Container,
@@ -12,22 +12,14 @@ import {
 
 import mindImg from '../../images/mind.svg';
 
-import {
-  CATEGORIES,
-  NUM_OF_QUESTIONS,
-  DIFFICULTY,
-  QUESTIONS_TYPE,
-  COUNTDOWN_TIME,
-} from '../../constants';
+import {COUNTDOWN_TIME} from '../../constants';
 import { shuffle } from '../../utils';
 
 import Offline from '../Offline';
 
 const Main = ({ startQuiz }) => {
-  const [category, setCategory] = useState('0');
-  const [numOfQuestions, setNumOfQuestions] = useState(5);
-  const [difficulty, setDifficulty] = useState('0');
-  const [questionsType, setQuestionsType] = useState('0');
+  const [quizOptions, setQuizOptions] = useState([]);
+  const [quizToPlay, setQuizToPlay] = useState('0');
   const [countdownTime, setCountdownTime] = useState({
     hours: 0,
     minutes: 120,
@@ -37,63 +29,59 @@ const Main = ({ startQuiz }) => {
   const [error, setError] = useState(null);
   const [offline, setOffline] = useState(false);
 
+  console.log(quizToPlay)
+
   const handleTimeChange = (e, { name, value }) => {
     setCountdownTime({ ...countdownTime, [name]: value });
   };
 
   let allFieldsSelected = false;
   if (
-    category &&
-    numOfQuestions &&
-    difficulty &&
-    questionsType &&
+    quizOptions &&
     (countdownTime.hours || countdownTime.minutes || countdownTime.seconds)
   ) {
     allFieldsSelected = true;
   }
+
+  useEffect(() => {
+    const doFetch = async () => {
+      const response = await fetch('http://localhost:8000/quiz/quiz/');
+      let quizList = await response.json();
+      quizList = formatQuiz(quizList)
+      setQuizOptions(quizList);
+    };
+    doFetch();
+  }, []);
+
+  const formatQuiz = (quizList) => {
+    return quizList.map((quiz) => {
+      quiz.text = quiz.quiz_title;
+      quiz.value = quiz.id;
+      return quiz;
+    });
+  };
 
   const fetchData = () => {
     setProcessing(true);
 
     if (error) setError(null);
 
-    const API = `https://opentdb.com/api.php?amount=${numOfQuestions}&category=${category}&difficulty=${difficulty}&type=${questionsType}`;
+    const API = 'http://localhost:8000/quiz/questions/quiz_id=' + quizToPlay
 
     fetch(API)
       .then(respone => respone.json())
-      .then(data =>
+      .then(questions =>
         setTimeout(() => {
-          const { response_code, results } = data;
-
-          if (response_code === 1) {
-            const message = (
-              <p>
-                The API doesn't have enough questions for your query. (Ex.
-                Asking for 50 Questions in a Category that only has 20.)
-                <br />
-                <br />
-                Please change the <strong>No. of Questions</strong>,{' '}
-                <strong>Difficulty Level</strong>, or{' '}
-                <strong>Type of Questions</strong>.
-              </p>
-            );
-
-            setProcessing(false);
-            setError({ message });
-
-            return;
-          }
-
-          results.forEach(element => {
+          questions.forEach(element => {
             element.options = shuffle([
               element.correct_answer,
-              ...element.incorrect_answers,
+              ...element.incorrect_answers.replace('[', '').replace(']', '').split(','),
             ]);
           });
 
           setProcessing(false);
           startQuiz(
-            results,
+            questions,
             countdownTime.hours + countdownTime.minutes + countdownTime.seconds
           );
         }, 1000)
@@ -120,7 +108,7 @@ const Main = ({ startQuiz }) => {
             <Item.Image src={mindImg} />
             <Item.Content>
               <Item.Header>
-                <h1>The Ultimate Trivia Quiz</h1>
+                <h1>Customized Quiz Anytime</h1>
               </Item.Header>
               {error && (
                 <Message error onDismiss={() => setError(null)}>
@@ -133,48 +121,12 @@ const Main = ({ startQuiz }) => {
                 <Dropdown
                   fluid
                   selection
-                  name="category"
-                  placeholder="Select Quiz Category"
-                  header="Select Quiz Category"
-                  options={CATEGORIES}
-                  value={category}
-                  onChange={(e, { value }) => setCategory(value)}
-                  disabled={processing}
-                />
-                <br />
-                <Dropdown
-                  fluid
-                  selection
-                  name="numOfQ"
-                  placeholder="Select No. of Questions"
-                  header="Select No. of Questions"
-                  options={NUM_OF_QUESTIONS}
-                  value={numOfQuestions}
-                  onChange={(e, { value }) => setNumOfQuestions(value)}
-                  disabled={processing}
-                />
-                <br />
-                <Dropdown
-                  fluid
-                  selection
-                  name="difficulty"
-                  placeholder="Select Difficulty Level"
-                  header="Select Difficulty Level"
-                  options={DIFFICULTY}
-                  value={difficulty}
-                  onChange={(e, { value }) => setDifficulty(value)}
-                  disabled={processing}
-                />
-                <br />
-                <Dropdown
-                  fluid
-                  selection
-                  name="type"
-                  placeholder="Select Questions Type"
-                  header="Select Questions Type"
-                  options={QUESTIONS_TYPE}
-                  value={questionsType}
-                  onChange={(e, { value }) => setQuestionsType(value)}
+                  name="quiz"
+                  placeholder="Select Quiz Title"
+                  header="Select Quiz Title"
+                  options={quizOptions}
+                  value={quizToPlay}
+                  onChange={(e, { value }) => setQuizToPlay(value)}
                   disabled={processing}
                 />
                 <br />

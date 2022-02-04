@@ -7,12 +7,10 @@ from .serializers import *
 
 
 @api_view(['GET', 'POST'])
-def Questions_list(request):
+def Questions_list(request, quiz_id: str):
     if request.method == 'GET':
-        data = Question.objects.all()
-
+        data = Question.objects.filter(quiz=quiz_id)
         serializer = QuestionSerializer(data, context={'request': request}, many=True)
-
         return Response(serializer.data)
 
     elif request.method == 'POST':
@@ -28,9 +26,7 @@ def Questions_list(request):
 def Quiz_list(request):
     if request.method == 'GET':
         data = Quiz.objects.all()
-
         serializer = QuizSerializer(data, context={'request': request}, many=True)
-
         return Response(serializer.data)
 
     elif request.method == 'POST':
