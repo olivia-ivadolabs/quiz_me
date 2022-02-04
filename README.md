@@ -47,7 +47,7 @@ Run backend:
 python manage.py runserver
 ```
 
-Now you can open http://localhost:8000/admin and add quiz and questions on the admin page, and then see the question list on http://localhost:8000/quiz/questions/quiz_id={quiz id}.
+Now you can open http://localhost:8000/admin and add quiz and questions on the admin page, and then see the quiz list on http://localhost:8000/quiz/quiz and question list on http://localhost:8000/quiz/questions/quiz_id={quiz id}.
 
 ## Run frontend
 Open another console, then run:
