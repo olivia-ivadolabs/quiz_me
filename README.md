@@ -1,4 +1,4 @@
-# Development
+# How to Play a Quiz
 
 To get a local copy of the code, clone it using git:
 
@@ -47,9 +47,10 @@ Run backend:
 python manage.py runserver
 ```
 
-Now you can open http://localhost:8000/admin and add questions and quiz on the admin page, and then see the question list on http://localhost:8000/quiz/questions/.
+Now you can open http://localhost:8000/admin and add quiz and questions on the admin page, and then see the question list on http://localhost:8000/quiz/questions/quiz_id={quiz id}.
 
 ## Run frontend
+Open another console, then run:
 ```
 cd quiz_me_fe
 ```
@@ -66,4 +67,4 @@ Start a local web server by running:
 npm start
 ```
 
-And then open http://localhost:3000 to view it in the browser.
+And then open http://localhost:3000 to view it in the browser and play the quiz
